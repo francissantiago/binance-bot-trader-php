@@ -1,0 +1,5 @@
+{
+    "require": {
+        "binance/binance-connector-php": "^1.5"
+    }
+}
