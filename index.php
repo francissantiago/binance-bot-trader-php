@@ -1,3 +1,9 @@
+<?php
+require_once 'src/database.php';
+// Estabelece a conexão com o banco de dados
+$conn = connectDatabase();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
