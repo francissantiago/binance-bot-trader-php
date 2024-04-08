@@ -9,7 +9,7 @@ $app_endpoint_ws_api = "wss://ws-api.binance.com/ws-api/v3";
 $app_endpoint_ws = "wss://stream.binance.com:9443/ws";
 $app_endpoint_stream = "wss://stream.binance.com:9443/stream";
 
-if($app_network === 1){
+if($app_testnet === 1){
     $app_endpoint_api = "https://testnet.binance.vision/api";
     $app_endpoint_ws_api = "wss://testnet.binance.vision/ws-api/v3";
     $app_endpoint_ws = "wss://testnet.binance.vision/ws";
