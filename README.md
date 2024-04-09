@@ -7,6 +7,12 @@
 - MySQL 5.7.40
 - Composer
 
+### Generate API keys
+- Access the link and generate a new API key: https://www.binance.com/pt-BR/my/settings/api-management
+- Edit restrictions and add settings for: Enable Reading, Enable Spot & Margin Trading, Restrict access to trusted IPs only (recommended).
+- Under Restrict access to only trusted IPs (recommended), add your IP so that only the machine on which the script is running can connect to your API key.
+- Save the settings.
+
 ### Install dependences
 ```sh
 composer require binance/binance-connector-php
