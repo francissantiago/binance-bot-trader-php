@@ -26,6 +26,17 @@ class AccountUser {
         $response = $client->accountStatus( [ 'recvWindow' => 5000 ] );
         return $response;
     }
+
+    public function userAssets(){
+        $client = new \Binance\Spot([
+            'key'  => $this->key,
+            'secret'  => $this->secret
+        ]);
+        
+        $response = $client->userAsset();
+
+        return $response;
+    }
 }
 
 ?>

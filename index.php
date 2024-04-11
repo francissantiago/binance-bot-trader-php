@@ -43,7 +43,7 @@ $conn = connectDatabase();
                 </div>
             </div>
             <div class="col-md-5">
-                <div class="input-group mb-3 mt-3 input-group">
+                <div class="input-group mb-3 mt-3">
                     <span class="input-group-text">@</span>
                     <div class="form-floating">
                         <input type="password" class="form-control" id="input_binance_api_secret" placeholder="Binance API Secret">
@@ -55,8 +55,20 @@ $conn = connectDatabase();
                 <div class="input-group mb-3 mt-3" id="div_connect_binance">
                     <a class="btn btn-success form-control btn-md fw-bold" id="connect_binance_btn">CONNECT</a>
                 </div>
-                <div class="input-group mb-3 mt-3" style="display: none" id="disconnect_binance">
-                    <a class="btn btn-danger form-control btn-md fw-bold"  id="disconnect_binance">DISCONNECT</a>
+                <div class="input-group mb-3 mt-3" style="display: none" id="div_disconnect_binance">
+                    <a class="btn btn-danger form-control btn-md fw-bold"  id="disconnect_binance_btn">DISCONNECT</a>
+                </div>
+            </div>
+        </div>
+        <div class="panel" id="div_panel" style="display:none">
+            <div class="row bg-light text-dark d-flex align-items-center">
+                <div class="col-md-5">
+                    <div class="input-group mb-3 mt-3">
+                            <span class="input-group-text">Base Coin</span>
+                            <select class="form-control" id="select_trade_base_coin">
+
+                            </select>
+                    </div>
                 </div>
             </div>
         </div>
@@ -65,28 +77,24 @@ $conn = connectDatabase();
     <!-- Script JavaScript -->
     <script type="text/javascript">
         $(document).ready(() => {
+            /* =================================================================
+            * VARIÁVEIS
+            * ==================================================================
+            */
             let input_binance_api_key = $('#input_binance_api_key');
             let input_binance_api_secret = $('#input_binance_api_secret');
+            let select_trade_base_coin = $('#select_trade_base_coin');
+
             let btn_connect_binance = $('#connect_binance_btn');
+
             let div_connect_binance = $('#div_connect_binance');
-            let disconnect_binance = $('#disconnect_binance');
+            let div_disconnect_binance = $('#div_disconnect_binance');
+            let div_panel = $('#div_panel');
 
-            // Cria um objeto "local_credentials" no LocalStorage se não existir
-            if (!localStorage.getItem("local_credentials")) {
-                localStorage.setItem("local_credentials", JSON.stringify([]));
-            }
-
-            // Obtém os dados do LocalStorage
-            var credentials = JSON.parse(localStorage.getItem("local_credentials"));
-
-            // Se a conversão for bem-sucedida, a chave possui dados
-            if (credentials.length > 0) {
-                input_binance_api_key.attr('disabled', true).val('*****************************');
-                input_binance_api_secret.attr('disabled', true).val('*****************************');
-                div_connect_binance.hide();
-                disconnect_binance.show();
-            }
-
+            /* =================================================================
+            * BOTÃO DE CONEXÃO E TESTE DE AUTENTICAÇÃO BINANCE
+            * ==================================================================
+            */
             // Evento de clique no botão "CONNECT"
             btn_connect_binance.click((e) => {
                 e.preventDefault();
@@ -110,7 +118,7 @@ $conn = connectDatabase();
                 } else {
                     // Realiza uma requisição AJAX para obter os dados da conta
                     $.ajax({
-                        url: "actions/get_account_data.php",
+                        url: "actions/account/get_account_data.php",
                         type: "POST",
                         dataType: 'json',
                         data: {
@@ -155,6 +163,66 @@ $conn = connectDatabase();
                     })
                 }
             });
+
+            /* =================================================================
+            * VERIFICAÇÕES DE ACESSO DO USUÁRIO
+            * ==================================================================
+            */
+
+            // Cria um objeto "local_credentials" no LocalStorage se não existir
+            if (!localStorage.getItem("local_credentials")) {
+                localStorage.setItem("local_credentials", JSON.stringify([]));
+            }
+
+            // Obtém os dados do LocalStorage
+            var credentials = JSON.parse(localStorage.getItem("local_credentials"));
+
+            // Se a conversão for bem-sucedida, a chave possui dados
+            if (credentials.length > 0) {
+                input_binance_api_key.attr('disabled', true).val('*****************************');
+                input_binance_api_secret.attr('disabled', true).val('*****************************');
+                div_connect_binance.hide();
+                div_disconnect_binance.show();
+                div_panel.show();
+
+                 // Recupera as credenciais do primeiro objeto
+                var firstCredentials = credentials[0];
+
+                // Atribui as credenciais a variáveis separadas
+                var saved_binance_api_key = firstCredentials.binance_api_key;
+                var saved_binance_api_key_secret = firstCredentials.binance_api_secret;
+
+                /* =================================================================
+                * AÇÕES PARA USUÁRIO AUTENTICADO
+                * ==================================================================
+                */
+               // Lista todos os ativos com saldo do usuário
+                $.ajax({
+                    url: "actions/account/get_all_active_balances.php",
+                    type: "POST",
+                    data: {
+                        binance_api_key:saved_binance_api_key,
+                        binance_api_secret:saved_binance_api_key_secret
+                    },
+                    dataType: "json",
+                    success: function (resultado) {
+                        console.log(resultado)
+                        var resultFilter = resultado['message'];
+                        var options = '<option value=""> - </option>';
+                        $.each(resultFilter, function (index, value){
+                            options = options + `<option class="text-capitalize" value="${value.asset}"> ${value.asset} (${value.free})</option>`;
+                        });
+                        
+                        // Aguardar 1.5 segundos e em seguida exibir os dados no select
+                        setTimeout(function() {
+                            select_trade_base_coin.html(options);
+                        }, 1500);
+                    }
+                });
+            }
+
+
+
         });
     </script>
 </body>
