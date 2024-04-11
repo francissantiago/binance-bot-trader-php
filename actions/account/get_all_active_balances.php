@@ -1,13 +1,13 @@
 <?php
 header('Content-Type: application/json'); // Envia a resposta como JSON
-require_once $_SERVER['DOCUMENT_ROOT'] . '/src/Account.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/src/AccountsController.php';
 
 $msg = [];
 if( isset($_POST['binance_api_key']) && isset($_POST['binance_api_secret']) ) {
     $key = $_POST['binance_api_key'];
     $secret = $_POST['binance_api_secret'];
 
-    $call_account_class = new AccountUser($key, $secret);
+    $call_account_class = new AccountsController($key, $secret);
     $callMehod = $call_account_class->userAssets();
 
     $msg = [

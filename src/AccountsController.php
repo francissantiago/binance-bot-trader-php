@@ -1,5 +1,5 @@
 <?php
-class AccountUser {
+class AccountsController {
     public $key;
     public $secret;
 
