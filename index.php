@@ -53,10 +53,10 @@ $conn = connectDatabase();
             </div>
             <div class="col-md-2">
                 <div class="input-group mb-3 mt-3" id="div_connect_binance">
-                    <a class="btn btn-success form-control btn-md fw-bold" id="connect_binance_btn">CONNECT</a>
+                    <a class="btn btn-success form-control btn-md fw-bold" id="btn_connect_binance">CONNECT</a>
                 </div>
                 <div class="input-group mb-3 mt-3" style="display: none" id="div_disconnect_binance">
-                    <a class="btn btn-danger form-control btn-md fw-bold"  id="disconnect_binance_btn">DISCONNECT</a>
+                    <a class="btn btn-danger form-control btn-md fw-bold"  id="btn_disconnect_binance">DISCONNECT</a>
                 </div>
             </div>
         </div>
@@ -85,7 +85,8 @@ $conn = connectDatabase();
             let input_binance_api_secret = $('#input_binance_api_secret');
             let select_trade_base_coin = $('#select_trade_base_coin');
 
-            let btn_connect_binance = $('#connect_binance_btn');
+            let btn_connect_binance = $('#btn_connect_binance');
+            let btn_disconnect_binance = $('#btn_disconnect_binance');
 
             let div_connect_binance = $('#div_connect_binance');
             let div_disconnect_binance = $('#div_disconnect_binance');
@@ -162,6 +163,32 @@ $conn = connectDatabase();
                         }
                     })
                 }
+            });
+
+            // Evento de clique no botão "DISCONNECT"
+            btn_disconnect_binance.click((e) => {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: "Are you sure",
+                    text: "you would like to disconnect your account?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Yes, disconnect!"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        localStorage.clear();
+                        Swal.fire({
+                        title: "Disconnected!",
+                        text: "Your account has been successfully disconnected!",
+                        icon: "success"
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    }
+                });
             });
 
             /* =================================================================
