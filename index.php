@@ -23,7 +23,7 @@ $conn = connectDatabase();
 </head>
 <body class="bg-black text-white">
     <div class="container">
-        <div class="row bg-dark rounded-bottom-2">
+        <div class="row bg-dark">
             <div class="col-md-12 text-center p-1">
                 <h3 class="display-5 p-3 text-uppercase fw-bold">
                     <?php echo $app_title; ?> <!-- Exibe o título do aplicativo -->
@@ -31,8 +31,9 @@ $conn = connectDatabase();
                 <span class="float-start">Developer: Francis Santiago</span>
                 <span class="float-end">Version: <?php echo $app_version; ?></span> <!-- Exibe a versão do aplicativo -->
             </div>
+            <hr class="bg-warning mt-2 mb-2" style="height: 2px">
         </div>
-        <div class="row bg-light text-dark d-flex align-items-center">
+        <div class="row bg-dark text-light d-flex align-items-center p-2">
             <div class="col-md-5">
                 <div class="input-group mb-3 mt-3">
                     <span class="input-group-text">@</span>
@@ -59,15 +60,33 @@ $conn = connectDatabase();
                     <a class="btn btn-danger form-control btn-md fw-bold"  id="btn_disconnect_binance">DISCONNECT</a>
                 </div>
             </div>
+            <hr class="bg-warning mt-2 mb-2" style="height: 2px">
         </div>
-        <div class="panel" id="div_panel" style="display:none">
-            <div class="row bg-light text-dark d-flex align-items-center">
-                <div class="col-md-5">
+        <div class="panel bg-secondary" id="div_panel" style="display:none">
+            <div class="row bg-dark text-light d-flex align-items-center p-2">
+                <div class="col-md-12 text-center">
+                    <span class="display-6">Balances</span>
+                </div>
+            </div>
+            <div class="row bg-dark text-light d-flex align-items-center p-2" id="div_balance">
+                
+            </div>
+            <div class="row bg-dark text-light d-flex align-items-center p-2">
+                <hr class="bg-warning mt-2 mb-2" style="height: 2px">
+            </div>
+            <div class="row bg-dark text-light d-flex align-items-center p-2">
+                <div class="col-md-12 text-center">
+                    <span class="display-6">Robot Settings</span>
+                </div>
+                <div class="col-md-4">
                     <div class="input-group mb-3 mt-3">
-                            <span class="input-group-text">Base Coin</span>
-                            <select class="form-control" id="select_trade_base_coin">
+                        <span class="input-group-text">Market Pairs</span>
+                        <select class="form-control" id="select_trade_pair_coin">
 
-                            </select>
+                        </select>
+                    </div>
+                    <div class="input-group mb-3 mt-3">
+                        
                     </div>
                 </div>
             </div>
@@ -84,6 +103,7 @@ $conn = connectDatabase();
             let input_binance_api_key = $('#input_binance_api_key');
             let input_binance_api_secret = $('#input_binance_api_secret');
             let select_trade_base_coin = $('#select_trade_base_coin');
+            let select_trade_pair_coin = $('#select_trade_pair_coin');
 
             let btn_connect_binance = $('#btn_connect_binance');
             let btn_disconnect_binance = $('#btn_disconnect_binance');
@@ -91,6 +111,7 @@ $conn = connectDatabase();
             let div_connect_binance = $('#div_connect_binance');
             let div_disconnect_binance = $('#div_disconnect_binance');
             let div_panel = $('#div_panel');
+            let div_balance = $('#div_balance');
 
             /* =================================================================
             * BOTÃO DE CONEXÃO E TESTE DE AUTENTICAÇÃO BINANCE
@@ -233,23 +254,43 @@ $conn = connectDatabase();
                     },
                     dataType: "json",
                     success: function (resultado) {
-                        console.log(resultado)
+                        var resultFilter = resultado['message'];
+                        options = [];
+                        $.each(resultFilter, function (index, value){
+                            options += `<div class="col-md-3" >
+                                            <div class="alert alert-info" role="alert">
+                                                <span class="fw-bold" id="balance_coin">${value.asset}</span> : <span id="balance_amount">${value.free}</span>
+                                            </div>
+                                        </div>
+                            `;
+                        });
+
+                        div_balance.html(options);
+                    }
+                });
+
+                // Lista todos as moedas disponíveis na Binance
+                $.ajax({
+                    url: "actions/market/get_all_markets.php",
+                    type: "POST",
+                    data: {
+                        binance_api_key:saved_binance_api_key,
+                        binance_api_secret:saved_binance_api_key_secret
+                    },
+                    dataType: "json",
+                    success: function (resultado) {
                         var resultFilter = resultado['message'];
                         var options = '<option value=""> - </option>';
                         $.each(resultFilter, function (index, value){
-                            options = options + `<option class="text-capitalize" value="${value.asset}"> ${value.asset} (${value.free})</option>`;
+                            if(value.status === 'TRADING'){
+                                options = options + `<option class="text-capitalize" value="${value.symbol}"> ${value.baseAsset} <-> ${value.quoteAsset}</option>`;
+                            }
                         });
                         
-                        // Aguardar 1.5 segundos e em seguida exibir os dados no select
-                        setTimeout(function() {
-                            select_trade_base_coin.html(options);
-                        }, 1500);
+                        select_trade_pair_coin.html(options);
                     }
                 });
             }
-
-
-
         });
     </script>
 </body>
