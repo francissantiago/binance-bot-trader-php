@@ -1,0 +1,12 @@
+.form-floating input,
+.form-floating label,
+select option,
+.input-group-text,
+.alert-light,
+.alert-info {
+    font-size: 15px !important;
+}
+
+#save_settings {
+    font-size: 25px !important;
+}
