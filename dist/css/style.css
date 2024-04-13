@@ -7,6 +7,7 @@ select option,
     font-size: 15px !important;
 }
 
-#save_settings {
+#btn_save_settings,
+#btn_clear_settings {
     font-size: 25px !important;
 }

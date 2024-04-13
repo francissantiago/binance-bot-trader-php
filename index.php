@@ -20,75 +20,229 @@ $conn = connectDatabase();
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- JQuery 3.7.1 -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link href="dist/css/style.css" rel="stylesheet" type="text/css" />
 </head>
 <body class="bg-black text-white">
-    <div class="container">
+    <div class="container-fluid">
         <div class="row bg-dark">
-            <div class="col-md-12 text-center p-1">
+            <div class="col-md-12 text-center p-3">
                 <h3 class="display-5 p-3 text-uppercase fw-bold">
                     <?php echo $app_title; ?> <!-- Exibe o título do aplicativo -->
+                    <a class="btn btn-success btn-lg float-end fw-bold" id="btn_start_bot"><span class="p-3">START</span></a>
+                    <a class="btn btn-danger btn-lg float-end fw-bold" id="btn_stop_bot" style="display:none"><span class="p-3">STOP</span></a>
                 </h3>
-                <span class="float-start">Developer: Francis Santiago</span>
-                <span class="float-end">Version: <?php echo $app_version; ?></span> <!-- Exibe a versão do aplicativo -->
+            </div>
+        </div>
+        <div class="row bg-dark">
+            <div class="col-md-12 text-center p-3">
+                <span class="float-start fw-bold">Developer: Francis Santiago</span>
+                <span class="float-end fw-bold">Version: <?php echo $app_version; ?></span> <!-- Exibe a versão do aplicativo -->
             </div>
             <hr class="bg-warning mt-2 mb-2" style="height: 2px">
         </div>
-        <div class="row bg-dark text-light d-flex align-items-center p-2">
-            <div class="col-md-5">
-                <div class="input-group mb-3 mt-3">
-                    <span class="input-group-text">@</span>
-                    <div class="form-floating">
-                        <input type="password" class="form-control" id="input_binance_api_key" placeholder="Binance API Key">
-                        <label for="input_binance_api_key">Binance API Key</label>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-5">
-                <div class="input-group mb-3 mt-3">
-                    <span class="input-group-text">@</span>
-                    <div class="form-floating">
-                        <input type="password" class="form-control" id="input_binance_api_secret" placeholder="Binance API Secret">
-                        <label for="input_binance_api_secret">Binance API Secret</label>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="input-group mb-3 mt-3" id="div_connect_binance">
-                    <a class="btn btn-success form-control btn-md fw-bold" id="btn_connect_binance">CONNECT</a>
-                </div>
-                <div class="input-group mb-3 mt-3" style="display: none" id="div_disconnect_binance">
-                    <a class="btn btn-danger form-control btn-md fw-bold"  id="btn_disconnect_binance">DISCONNECT</a>
-                </div>
-            </div>
-            <hr class="bg-warning mt-2 mb-2" style="height: 2px">
-        </div>
-        <div class="panel bg-secondary" id="div_panel" style="display:none">
-            <div class="row bg-dark text-light d-flex align-items-center p-2">
-                <div class="col-md-12 text-center">
-                    <span class="display-6">Balances</span>
-                </div>
-            </div>
-            <div class="row bg-dark text-light d-flex align-items-center p-2" id="div_balance">
-                
-            </div>
-            <div class="row bg-dark text-light d-flex align-items-center p-2">
-                <hr class="bg-warning mt-2 mb-2" style="height: 2px">
-            </div>
-            <div class="row bg-dark text-light d-flex align-items-center p-2">
-                <div class="col-md-12 text-center">
-                    <span class="display-6">Robot Settings</span>
-                </div>
-                <div class="col-md-4">
-                    <div class="input-group mb-3 mt-3">
-                        <span class="input-group-text">Market Pairs</span>
-                        <select class="form-control" id="select_trade_pair_coin">
 
-                        </select>
-                    </div>
-                    <div class="input-group mb-3 mt-3">
-                        
+        <div class="row bg-dark text-dark d-flex align-items-center p-2">
+            <div class="accordion accordion-flush mb-2" id="accordionTradeBot">
+                <div class="accordion-item bg-dark text-light">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+                            <span class="display-6 fw-bold">Authentication</span>
+                        </button>
+                    </h2>
+                    <div id="flush-collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionTradeBot">
+                        <div class="accordion-body">
+                            <div class="row d-flex align-items-center">
+                                <div class="col-md-5">
+                                    <div class="input-group mb-3 mt-3">
+                                        <span class="input-group-text bg-dark">🔑</span>
+                                        <div class="form-floating">
+                                            <input type="password" class="form-control" id="input_binance_api_key" placeholder="Binanc=e API Key">
+                                            <label for="input_binance_api_key">Binance API Key</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="input-group mb-3 mt-3">
+                                        <span class="input-group-text bg-dark">🔐</span>
+                                        <div class="form-floating">
+                                            <input type="password" class="form-control" id="input_binance_api_secret" placeholder="Binance API Secret">
+                                            <label for="input_binance_api_secret">Binance API Secret</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="input-group mb-3 mt-3" id="div_connect_binance">
+                                        <a class="btn btn-success form-control btn-md fw-bold" id="btn_connect_binance">CONNECT</a>
+                                    </div>
+                                    <div class="input-group mb-3 mt-3" style="display: none" id="div_disconnect_binance">
+                                        <a class="btn btn-danger form-control btn-md fw-bold"  id="btn_disconnect_binance">DISCONNECT</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                <div class="panel bg-secondary" id="div_panel" style="display:none">
+                    <div class="accordion-item bg-dark text-light">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
+                                <span class="display-6 fw-bold">Balances</span>
+                            </button>
+                        </h2>
+                        <div id="flush-collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionTradeBot">
+                            <div class="accordion-body">
+                                <div class="row" id="div_balance">
+                                    <div class="d-flex justify-content-center">
+                                        <div class="spinner-border" role="status" style="width: 4rem; height: 4rem;">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-dark text-light">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
+                                <span class="display-6 fw-bold">Bot Settings</span>
+                            </button>
+                        </h2>
+                        <div id="flush-collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionTradeBot">
+                            <div class="accordion-body">
+                                <div class="row d-flex align-items-center">
+                                    <div class="col-md-3">
+                                        <div class="input-group mb-1 mt-1 text-center">
+                                            <div class="alert alert-light form-control" role="alert">
+                                                <span class="fw-bold">Fee (Taker)</span> : <span id="fee_level_taker">0.000</span> %
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="input-group mb-1 mt-1 text-center">
+                                            <div class="alert alert-light form-control" role="alert">
+                                                <span class="fw-bold">Fee (Maker)</span> : <span id="fee_level_maker">0.000</span> %
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="input-group mb-1 mt-1 text-center">
+                                            <div class="alert alert-light form-control" role="alert">
+                                                <span class="fw-bold">Last Price</span> : <span id="market_last_price">00000000.00000000</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="input-group mb-1 mt-1 text-center">
+                                            <div class="alert alert-light form-control" role="alert">
+                                                <span class="fw-bold">Last 5min</span> : <span id="last_five_minutes">+25.358</span> %
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="input-group mb-1 mt-1">
+                                            <span class="input-group-text bg-dark text-light">Market Pairs</span>
+                                            <select class="form-control" id="select_trade_pair_coin">
+
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="input-group mb-1 mt-1">
+                                            <span class="input-group-text bg-dark text-light">Target Profit(%)</span>
+                                            <input type="text" class="form-control" id="input_target_profit" placeholder="2.53">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="input-group mb-1 mt-1">
+                                            <span class="input-group-text bg-dark text-light">Max Lose(%)</span>
+                                            <input type="text" class="form-control" id="input_max_lose" placeholder="2.53">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="input-group mb-1 mt-1">
+                                            <span class="input-group-text bg-dark text-light">Max Profit(%)</span>
+                                            <input type="text" class="form-control" id="input_max_profit" placeholder="2.53">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="input-group mb-1 mt-2" id="btn_save_bot_settings">
+                                            <a class="btn btn-success btn-lg fw-bold form-control text-uppercase" id="btn_save_settings">Save Settings</a>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="input-group mb-1 mt-2" id="btn_save_bot_settings">
+                                            <a class="btn btn-danger btn-lg fw-bold form-control text-uppercase" id="btn_clear_settings">Clear Settings</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-dark text-light">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseFour" aria-expanded="false" aria-controls="flush-collapseFour">
+                                <span class="display-6 fw-bold">Transactions</span>
+                            </button>
+                        </h2>
+                        <div id="flush-collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordionTradeBot">
+                            <div class="accordion-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="accordion-item bg-dark text-light">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseBuy" aria-expanded="false" aria-controls="flush-collapseBuy">
+                                                    <span class="fw-bold">BUY</span>
+                                                </button>
+                                            </h2>
+                                            <div id="flush-collapseBuy" class="accordion-collapse collapse" data-bs-parent="#accordionBuy">
+                                                <div class="accordion-body">
+                                                    <div class="row" id="div_buy">
+                                                        <div class="d-flex justify-content-center">
+                                                            <div class="spinner-border" role="status" style="width: 4rem; height: 4rem;">
+                                                                <span class="visually-hidden">Loading...</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="accordion-item bg-dark text-light">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseSell" aria-expanded="false" aria-controls="flush-collapseSell">
+                                                    <span class="fw-bold">SELL</span>
+                                                </button>
+                                            </h2>
+                                            <div id="flush-collapseSell" class="accordion-collapse collapse" data-bs-parent="#accordionSell">
+                                                <div class="accordion-body">
+                                                    <div class="row" id="div_sell">
+                                                        <div class="d-flex justify-content-center">
+                                                            <div class="spinner-border" role="status" style="width: 4rem; height: 4rem;">
+                                                                <span class="visually-hidden">Loading...</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row bg-dark">
+            <div class="col-md-12 mt-2 mb-4">
+                <span class="fw-bold" style="font-size: 20px">Console:</span>
+                <textarea class="form-control" rows="20"></textarea>
             </div>
         </div>
     </div>
@@ -100,18 +254,33 @@ $conn = connectDatabase();
             * VARIÁVEIS
             * ==================================================================
             */
+           // Authentication
             let input_binance_api_key = $('#input_binance_api_key');
             let input_binance_api_secret = $('#input_binance_api_secret');
-            let select_trade_base_coin = $('#select_trade_base_coin');
-            let select_trade_pair_coin = $('#select_trade_pair_coin');
 
             let btn_connect_binance = $('#btn_connect_binance');
             let btn_disconnect_binance = $('#btn_disconnect_binance');
 
             let div_connect_binance = $('#div_connect_binance');
             let div_disconnect_binance = $('#div_disconnect_binance');
+
+            // Settings
+            let select_trade_pair_coin = $('#select_trade_pair_coin');
+            let input_target_profit = $('#input_target_profit');
+            let input_max_lose = $('#input_max_lose');
+            let input_max_profit = $('#input_max_profit');
+            let btn_save_settings = $('#btn_save_settings');
+            let btn_clear_settings = $('#btn_clear_settings');
+
+            // Bot buttonns actions
+            let btn_start_bot = $('#btn_start_bot');
+            let btn_stop_bot = $('#btn_stop_bot');
+            
+            // Genenral
             let div_panel = $('#div_panel');
             let div_balance = $('#div_balance');
+            let div_buy = $('#div_buy');
+            let div_sell = $('#div_sell');
 
             /* =================================================================
             * BOTÃO DE CONEXÃO E TESTE DE AUTENTICAÇÃO BINANCE
@@ -257,9 +426,10 @@ $conn = connectDatabase();
                         var resultFilter = resultado['message'];
                         options = [];
                         $.each(resultFilter, function (index, value){
-                            options += `<div class="col-md-3" >
+                            options += `<div class="col-md-3">
                                             <div class="alert alert-info" role="alert">
-                                                <span class="fw-bold" id="balance_coin">${value.asset}</span> : <span id="balance_amount">${value.free}</span>
+                                                <span class="fw-bold" id="balance_coin">${value.asset}</span>
+                                                <span class="float-end" id="balance_amount">${parseFloat(value.free).toFixed(8)}</span>
                                             </div>
                                         </div>
                             `;
@@ -288,6 +458,39 @@ $conn = connectDatabase();
                         });
                         
                         select_trade_pair_coin.html(options);
+                    }
+                });
+
+                // Exibe as taxas de acordo com o mercado selecionado
+                select_trade_pair_coin.change(() => {
+                    let fee_level_taker = $('#fee_level_taker');
+                    let fee_level_maker = $('#fee_level_maker');
+                    let select_trade_pair_coin_value = select_trade_pair_coin.val();
+
+                    if(select_trade_pair_coin_value){
+                        $.ajax({
+                            url: "actions/account/get_trade_fee.php",
+                            type: "POST",
+                            data: {
+                                binance_api_key:saved_binance_api_key,
+                                binance_api_secret:saved_binance_api_key_secret,
+                                select_trade_pair_coin_value:select_trade_pair_coin_value
+                            },
+                            dataType: "json",
+                            success: function (resultado) {
+                                let resultFilter = resultado['message'][0];
+                                let fee_maker = parseFloat(resultFilter.makerCommission) * 100;
+                                let fee_taket = parseFloat(resultFilter.takerCommission) * 100;
+
+                                console.log(resultFilter.makerCommission)
+
+                                fee_level_taker.html(fee_taket.toFixed(3));
+                                fee_level_maker.html(fee_maker.toFixed(3));
+                            }
+                        });
+                    } else {
+                        fee_level_taker.html('0.000');
+                        fee_level_maker.html('0.000');
                     }
                 });
             }
