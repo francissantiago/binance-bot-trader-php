@@ -136,7 +136,7 @@ $conn = connectDatabase();
                                     <div class="col-md-3">
                                         <div class="input-group mb-1 mt-1 text-center">
                                             <div class="alert alert-light form-control" role="alert">
-                                                <span class="fw-bold">Last 5min</span> : <span id="last_five_minutes">+25.358</span> %
+                                                <span class="fw-bold">Last 24h</span> : <span id="last_24_hours">25.358</span> %
                                             </div>
                                         </div>
                                     </div>
@@ -168,13 +168,11 @@ $conn = connectDatabase();
                                             <input type="text" class="form-control" id="input_max_profit" placeholder="2.53">
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="input-group mb-1 mt-2" id="btn_save_bot_settings">
+                                    <div class="col-md-12">
+                                        <div class="input-group mb-1 mt-2" id="div_save_bot_settings">
                                             <a class="btn btn-success btn-lg fw-bold form-control text-uppercase" id="btn_save_settings">Save Settings</a>
                                         </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="input-group mb-1 mt-2" id="btn_save_bot_settings">
+                                        <div class="input-group mb-1 mt-2" id="div_clear_bot_settings" style="display: none">
                                             <a class="btn btn-danger btn-lg fw-bold form-control text-uppercase" id="btn_clear_settings">Clear Settings</a>
                                         </div>
                                     </div>
@@ -281,6 +279,13 @@ $conn = connectDatabase();
             let div_balance = $('#div_balance');
             let div_buy = $('#div_buy');
             let div_sell = $('#div_sell');
+            let div_save_bot_settings = $('#div_save_bot_settings');
+            let div_clear_bot_settings = $('#div_clear_bot_settings');
+
+            let fee_level_taker = $('#fee_level_taker');
+            let fee_level_maker = $('#fee_level_maker');
+            let market_last_price = $('#market_last_price');
+            let last_24_hours = $('#last_24_hours');
 
             /* =================================================================
             * BOTÃO DE CONEXÃO E TESTE DE AUTENTICAÇÃO BINANCE
@@ -371,9 +376,9 @@ $conn = connectDatabase();
                     if (result.isConfirmed) {
                         localStorage.clear();
                         Swal.fire({
-                        title: "Disconnected!",
-                        text: "Your account has been successfully disconnected!",
-                        icon: "success"
+                            title: "Disconnected!",
+                            text: "Your account has been successfully disconnected!",
+                            icon: "success"
                         }).then(() => {
                             window.location.reload();
                         });
@@ -391,8 +396,13 @@ $conn = connectDatabase();
                 localStorage.setItem("local_credentials", JSON.stringify([]));
             }
 
+            if (!localStorage.getItem("local_settings")) {
+                localStorage.setItem("local_settings", JSON.stringify([]));
+            }
+
             // Obtém os dados do LocalStorage
             var credentials = JSON.parse(localStorage.getItem("local_credentials"));
+            var settings = JSON.parse(localStorage.getItem("local_settings"));
 
             // Se a conversão for bem-sucedida, a chave possui dados
             if (credentials.length > 0) {
@@ -439,58 +449,172 @@ $conn = connectDatabase();
                     }
                 });
 
-                // Lista todos as moedas disponíveis na Binance
-                $.ajax({
-                    url: "actions/market/get_all_markets.php",
-                    type: "POST",
-                    data: {
-                        binance_api_key:saved_binance_api_key,
-                        binance_api_secret:saved_binance_api_key_secret
-                    },
-                    dataType: "json",
-                    success: function (resultado) {
-                        var resultFilter = resultado['message'];
-                        var options = '<option value=""> - </option>';
-                        $.each(resultFilter, function (index, value){
-                            if(value.status === 'TRADING'){
-                                options = options + `<option class="text-capitalize" value="${value.symbol}"> ${value.baseAsset} <-> ${value.quoteAsset}</option>`;
-                            }
-                        });
-                        
-                        select_trade_pair_coin.html(options);
-                    }
-                });
-
                 // Exibe as taxas de acordo com o mercado selecionado
                 select_trade_pair_coin.change(() => {
-                    let fee_level_taker = $('#fee_level_taker');
-                    let fee_level_maker = $('#fee_level_maker');
                     let select_trade_pair_coin_value = select_trade_pair_coin.val();
 
                     if(select_trade_pair_coin_value){
-                        $.ajax({
-                            url: "actions/account/get_trade_fee.php",
-                            type: "POST",
-                            data: {
-                                binance_api_key:saved_binance_api_key,
-                                binance_api_secret:saved_binance_api_key_secret,
-                                select_trade_pair_coin_value:select_trade_pair_coin_value
-                            },
-                            dataType: "json",
-                            success: function (resultado) {
-                                let resultFilter = resultado['message'][0];
-                                let fee_maker = parseFloat(resultFilter.makerCommission) * 100;
-                                let fee_taket = parseFloat(resultFilter.takerCommission) * 100;
-
-                                console.log(resultFilter.makerCommission)
-
-                                fee_level_taker.html(fee_taket.toFixed(3));
-                                fee_level_maker.html(fee_maker.toFixed(3));
-                            }
-                        });
+                        getMarketData(saved_binance_api_key, saved_binance_api_key_secret, select_trade_pair_coin_value);
                     } else {
                         fee_level_taker.html('0.000');
                         fee_level_maker.html('0.000');
+                    }
+                });
+
+                // Salva configurações de trade
+                btn_save_settings.click((e) => {
+                    e.preventDefault();
+
+                    Swal.fire({
+                        title: "Are you sure",
+                        text: "you want to save your current trade settings?",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#3085d6",
+                        cancelButtonColor: "#d33",
+                        confirmButtonText: "Yes, save!"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire({
+                                title: "Saved!",
+                                text: "Your settings have been saved! Launch the bot and good profits!",
+                                icon: "success"
+                            }).then(() => {
+                                // Armazena as connfigurações de trade no LocalStorage e recarrega a página
+                                let trade_settings = ({
+                                    select_trade_pair_coin:select_trade_pair_coin.val(),
+                                    input_target_profit:parseFloat(input_target_profit.val()),
+                                    input_max_lose:parseFloat(input_max_lose.val()),
+                                    input_max_profit:parseFloat(input_max_profit.val())
+                                });
+                                settings.push(trade_settings);
+                                localStorage.setItem("local_settings", JSON.stringify(settings));
+                                window.location.reload();
+                            });
+                        }
+                    });
+                });
+
+                // Limpar configurações de trade
+                btn_clear_settings.click((e) => {
+                    e.preventDefault();
+
+                    Swal.fire({
+                        title: "Do you want",
+                        text: "to clear your current trade settings?",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#3085d6",
+                        cancelButtonColor: "#d33",
+                        confirmButtonText: "Yes, clean!"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire({
+                                title: "Clean!",
+                                text: "Your trade settings have been cleared!",
+                                icon: "success"
+                            }).then(() => {
+                                // Limpa as configurações de trade no LocalStorage e recarrega a página
+                                localStorage.removeItem("local_settings");
+                                window.location.reload();
+                            });
+                        }
+                    });
+                });
+
+                if (settings.length > 0) {
+                    // Recupera as credenciais do primeiro objeto
+                    var settingsData = settings[0];
+
+                    // Atribui as credenciais a variáveis separadas
+                    let saved_trade_pair_coin = settingsData.select_trade_pair_coin;
+                    let saved_target_profit = settingsData.input_target_profit;
+                    let saved_max_lose = settingsData.input_max_lose;
+                    let saved_max_profit = settingsData.input_max_profit;
+
+                    let options = `<option class="text-capitalize" value=""> ${saved_trade_pair_coin}</option>`;
+                    select_trade_pair_coin.html(options)
+                                        .addClass('bg-secondary text-white')
+                                        .attr('disabled', true);
+                    input_target_profit.addClass('bg-secondary text-white').attr('readonly', true).val(saved_target_profit);
+                    input_max_lose.addClass('bg-secondary text-white').attr('readonly', true).val(saved_max_lose);
+                    input_max_profit.addClass('bg-secondary text-white').attr('readonly', true).val(saved_max_profit);
+
+                    getMarketData(saved_binance_api_key, saved_binance_api_key_secret, saved_trade_pair_coin)
+
+                    div_save_bot_settings.hide();
+                    div_clear_bot_settings.show();
+                } else {
+                    // Lista todos as moedas disponíveis na Binance
+                    $.ajax({
+                        url: "actions/market/get_all_markets.php",
+                        type: "POST",
+                        data: {
+                            binance_api_key:saved_binance_api_key,
+                            binance_api_secret:saved_binance_api_key_secret
+                        },
+                        dataType: "json",
+                        success: function (resultado) {
+                            var resultFilter = resultado['message'];
+
+                            // Sort the resultFilter based on value.symbol in ASC order
+                            resultFilter.sort(function(a, b) {
+                                return (a.symbol > b.symbol) ? 1 : ((a.symbol < b.symbol) ? -1 : 0);
+                            });
+
+                            var options = '<option value=""> - </option>';
+                            $.each(resultFilter, function (index, value){
+                                if(value.status === 'TRADING'){
+                                    options = options + `<option class="text-capitalize" value="${value.symbol}"> ${value.baseAsset} <-> ${value.quoteAsset}</option>`;
+                                }
+                            });
+                            
+                            select_trade_pair_coin.html(options);
+                        }
+                    });
+                }
+            }
+
+            function getMarketData(binance_api_key, binance_api_secret, trade_pair){
+                // Retorna as taxas do mercado selecionado
+                $.ajax({
+                    url: "actions/account/get_trade_fee.php",
+                    type: "POST",
+                    data: {
+                        binance_api_key:saved_binance_api_key,
+                        binance_api_secret:saved_binance_api_key_secret,
+                        trade_pair:trade_pair
+                    },
+                    dataType: "json",
+                    success: function (resultado) {
+                        let resultFilter = resultado['message'][0];
+                        let fee_maker = parseFloat(resultFilter.makerCommission) * 100;
+                        let fee_taket = parseFloat(resultFilter.takerCommission) * 100;
+
+                        fee_level_taker.html(fee_taket.toFixed(3));
+                        fee_level_maker.html(fee_maker.toFixed(3));
+                    }
+                });
+
+                // Retorna informações sobre o mercado
+                $.ajax({
+                    url: "actions/market/get_market_last_24h.php",
+                    type: "POST",
+                    data: {
+                        binance_api_key:saved_binance_api_key,
+                        binance_api_secret:saved_binance_api_key_secret,
+                        trade_pair:trade_pair
+                    },
+                    dataType: "json",
+                    success: function (resultado) {
+                        let resultFilter = resultado['message'];
+                        let lastPrice = parseFloat(resultFilter.lastPrice);
+                        let priceChangePercent = parseFloat(resultFilter.priceChangePercent);
+
+                        console.log(resultFilter)
+
+                        market_last_price.html(lastPrice.toFixed(3));
+                        last_24_hours.html(priceChangePercent.toFixed(3));
                     }
                 });
             }

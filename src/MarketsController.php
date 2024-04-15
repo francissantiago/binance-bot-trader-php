@@ -10,15 +10,23 @@ class MarketsController {
     }
 
     public function get_all_markets(){
-        $client = new \Binance\Spot([
-            'key'  => $this->key,
-            'secret'  => $this->secret
-        ]);
-
+        $client = new \Binance\Spot([ 'key'  => $this->key, 'secret'  => $this->secret ]);
         $data = $client->exchangeInfo();
+
         $symbols = $data['symbols'];
 
         return $symbols;
+    }
+
+    public function get_ticker24hr($market){
+        $client = new \Binance\Spot([ 'key'  => $this->key, 'secret'  => $this->secret ]);
+        $response = $client->ticker24hr(
+            [
+                'symbol' => $market
+            ]
+        );
+
+        return $response;
     }
 }
 
