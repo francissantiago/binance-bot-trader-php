@@ -15,6 +15,8 @@ $(document).ready(() => {
 
     // Settings
     let select_trade_pair_coin = $('#select_trade_pair_coin');
+    let input_analysis_interval = $('#input_analysis_interval');
+    let input_analysis_candles_depth = $('#input_analysis_candles_depth');
     let input_target_profit = $('#input_target_profit');
     let input_max_lose = $('#input_max_lose');
     let input_max_profit = $('#input_max_profit');
@@ -179,10 +181,10 @@ $(document).ready(() => {
         var saved_binance_api_key_secret = firstCredentials.binance_api_secret;
 
         /* =================================================================
-        * AÇÕES PARA USUÁRIO AUTENTICADO
+        * INÍCIO DAS AÇÕES PARA USUÁRIO AUTENTICADO
         * ==================================================================
         */
-       // Lista todos os ativos com saldo do usuário
+        // Lista todos os ativos com saldo do usuário
         $.ajax({
             url: "actions/account/get_all_active_balances.php",
             type: "POST",
@@ -208,7 +210,7 @@ $(document).ready(() => {
             }
         });
 
-        // Salva configurações de trade
+        // Evento de clique no botão "SAVE SETTINGS"
         btn_save_settings.click((e) => {
             e.preventDefault();
 
@@ -230,6 +232,8 @@ $(document).ready(() => {
                         // Armazena as connfigurações de trade no LocalStorage e recarrega a página
                         let trade_settings = ({
                             select_trade_pair_coin:select_trade_pair_coin.val(),
+                            input_analysis_interval:parseInt(input_analysis_interval.val()),
+                            input_analysis_candles_depth:parseInt(input_analysis_candles_depth.val()),
                             input_target_profit:parseFloat(input_target_profit.val()),
                             input_max_lose:parseFloat(input_max_lose.val()),
                             input_max_profit:parseFloat(input_max_profit.val())
@@ -242,7 +246,7 @@ $(document).ready(() => {
             });
         });
 
-        // Limpar configurações de trade
+        // Evento de clique no botão "CLEAR SETTINGS"
         btn_clear_settings.click((e) => {
             e.preventDefault();
 
@@ -275,6 +279,8 @@ $(document).ready(() => {
 
             // Atribui as credenciais a variáveis separadas
             let saved_trade_pair_coin = settingsData.select_trade_pair_coin;
+            let saved_analysis_interval = settingsData.input_analysis_interval;
+            let saved_analysis_candles_depth = settingsData.input_analysis_candles_depth;
             let saved_target_profit = settingsData.input_target_profit;
             let saved_max_lose = settingsData.input_max_lose;
             let saved_max_profit = settingsData.input_max_profit;
@@ -283,6 +289,8 @@ $(document).ready(() => {
             select_trade_pair_coin.html(options)
                                 .addClass('bg-secondary text-white')
                                 .attr('disabled', true);
+            input_analysis_interval.addClass('bg-secondary text-white').attr('readonly', true).val(saved_analysis_interval);
+            input_analysis_candles_depth.addClass('bg-secondary text-white').attr('readonly', true).val(saved_analysis_candles_depth);
             input_target_profit.addClass('bg-secondary text-white').attr('readonly', true).val(saved_target_profit);
             input_max_lose.addClass('bg-secondary text-white').attr('readonly', true).val(saved_max_lose);
             input_max_profit.addClass('bg-secondary text-white').attr('readonly', true).val(saved_max_profit);
@@ -341,6 +349,28 @@ $(document).ready(() => {
                 }
             });
         }
+
+        // Evento de clique no botão "START"
+        btn_start_bot.click((e) => {
+            e.preventDefault();
+            let market_settings = JSON.parse(localStorage.getItem("local_market_settings"));
+            // Recupera as credenciais do objeto
+            let marketSettingsData = market_settings;
+    
+            // Atribui as credenciais a variáveis separadas
+            let saved_trade_baseAsset = marketSettingsData.baseAsset;
+            let saved_trade_quoteAsset = marketSettingsData.quoteAsset;
+            let saved_trade_symbol = marketSettingsData.symbol;
+
+            setInterval(() => {
+                start_bot(saved_binance_api_key, saved_binance_api_key_secret, saved_trade_symbol, currentBalance, currentPrice, interval, limit);
+            }, 30000);
+        }); // Atualiza a cada 5 minutos
+        /* =================================================================
+        * FIM DAS AÇÕES PARA USUÁRIO AUTENTICADO
+        * ==================================================================
+        */
+
     }
 
     function getMarketData(binance_api_key, binance_api_secret){
@@ -409,9 +439,9 @@ $(document).ready(() => {
                 last_24_hours.html(priceChangePercent.toFixed(4));
 
                 if(priceChangePercent > 0){
-                    last_24_hours.addClass('text-success');
+                    last_24_hours.removeClass('text-danger').addClass('text-success');
                 } else {
-                    last_24_hours.addClass('text-danger');
+                    last_24_hours.removeClass('text-success').addClass('text-danger');
                 }
             }
         });
@@ -433,9 +463,9 @@ $(document).ready(() => {
                 last_5_minutes.html(priceChangePercent.toFixed(4));
 
                 if(priceChangePercent > 0){
-                    last_5_minutes.addClass('text-success');
+                    last_5_minutes.removeClass('text-danger').addClass('text-success');
                 } else {
-                    last_5_minutes.addClass('text-danger');
+                    last_5_minutes.removeClass('text-success').addClass('text-danger');
                 }
             }
         });
@@ -471,5 +501,25 @@ $(document).ready(() => {
         trade_market_selected.html(saved_trade_symbol);
 
         console.log("Market data successfully updated at", new Date().toLocaleString());
+    }
+
+    function start_bot(binance_api_key, binance_api_secret, trade_pair, currentBalance, currentPrice, interval, limit){
+        $.ajax({
+            url: "actions/trade/bot.php",
+            type: "POST",
+            data: {
+                binance_api_key:binance_api_key,
+                binance_api_secret:binance_api_secret,
+                trade_pair:trade_pair,
+                currentBalance:currentBalance,
+                currentPrice:currentPrice,
+                interval:interval,
+                limit:limit
+            },
+            dataType: "json",
+            success: function (resultado) {
+                
+            }
+        });
     }
 });
