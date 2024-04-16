@@ -46,7 +46,26 @@ $conn = connectDatabase();
 
         <div class="row bg-dark text-dark d-flex align-items-center p-2">
             <div class="row d-flex align-items-center">
-                <div class="col-md-3">
+                <div class="col-md-6">
+                    <div class="input-group mb-1 mt-1">
+                        <div class="alert alert-success form-control" role="alert">
+                            <span class="fw-bold">Balance</span> : <span id="balance_pair_one" class="float-end fw-bold">0.00000000</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group mb-1 mt-1">
+                        <div class="alert alert-success form-control" role="alert">
+                            <span class="fw-bold">Balance</span> : <span id="balance_pair_two" class="float-end fw-bold">0.00000000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row bg-dark text-dark d-flex align-items-center p-2">
+            <div class="row d-flex align-items-center">
+                <div class="col-md-2">
                     <div class="input-group mb-1 mt-1">
                         <div class="alert alert-light form-control" role="alert">
                             <span class="fw-bold">Trade Market</span> : <span id="trade_market_selected" class="float-end">-</span>
@@ -67,10 +86,17 @@ $conn = connectDatabase();
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="input-group mb-1 mt-1">
                         <div class="alert alert-light form-control" role="alert">
                             <span class="fw-bold">Last Price</span> : <span id="market_last_price" class="float-end">0.00000000</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="input-group mb-1 mt-1">
+                        <div class="alert alert-light form-control" role="alert">
+                            <span class="fw-bold">Last 5m (%)</span> : <span id="last_5_minutes" class="float-end fw-bold">0.0000</span>
                         </div>
                     </div>
                 </div>

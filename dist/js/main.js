@@ -3,7 +3,7 @@ $(document).ready(() => {
     * VARIÁVEIS
     * ==================================================================
     */
-   // Authentication
+    // Authentication
     let input_binance_api_key = $('#input_binance_api_key');
     let input_binance_api_secret = $('#input_binance_api_secret');
 
@@ -37,7 +37,10 @@ $(document).ready(() => {
     let fee_level_maker = $('#fee_level_maker');
     let market_last_price = $('#market_last_price');
     let last_24_hours = $('#last_24_hours');
+    let last_5_minutes = $('#last_5_minutes');
     let trade_market_selected = $('#trade_market_selected');
+    let balance_pair_one = $('#balance_pair_one');
+    let balance_pair_two = $('#balance_pair_two');
 
     /* =================================================================
     * BOTÃO DE CONEXÃO E TESTE DE AUTENTICAÇÃO BINANCE
@@ -152,6 +155,10 @@ $(document).ready(() => {
         localStorage.setItem("local_settings", JSON.stringify([]));
     }
 
+    if (!localStorage.getItem("local_market_settings")) {
+        localStorage.setItem("local_market_settings", JSON.stringify([]));
+    }
+
     // Obtém os dados do LocalStorage
     var credentials = JSON.parse(localStorage.getItem("local_credentials"));
     var settings = JSON.parse(localStorage.getItem("local_settings"));
@@ -198,21 +205,6 @@ $(document).ready(() => {
                 });
 
                 div_balance.html(options);
-            }
-        });
-
-        // Exibe as taxas de acordo com o mercado selecionado
-        select_trade_pair_coin.change(() => {
-            let select_trade_pair_coin_value = select_trade_pair_coin.val();
-
-            getMarketData(saved_binance_api_key, saved_binance_api_key_secret, select_trade_pair_coin_value);
-            if(select_trade_pair_coin_value){
-                setInterval(() => {
-                    getMarketData(saved_binance_api_key, saved_binance_api_key_secret, select_trade_pair_coin_value);
-                }, 30000);
-            } else {
-                fee_level_taker.html('0.000');
-                fee_level_maker.html('0.000');
             }
         });
 
@@ -295,9 +287,9 @@ $(document).ready(() => {
             input_max_lose.addClass('bg-secondary text-white').attr('readonly', true).val(saved_max_lose);
             input_max_profit.addClass('bg-secondary text-white').attr('readonly', true).val(saved_max_profit);
 
-            getMarketData(saved_binance_api_key, saved_binance_api_key_secret, saved_trade_pair_coin);
+            getMarketData(saved_binance_api_key, saved_binance_api_key_secret);
             setInterval(() => {
-                getMarketData(saved_binance_api_key, saved_binance_api_key_secret, saved_trade_pair_coin);
+                getMarketData(saved_binance_api_key, saved_binance_api_key_secret);
             }, 30000);
 
             div_save_bot_settings.hide();
@@ -323,17 +315,45 @@ $(document).ready(() => {
                     var options = '<option value=""> - </option>';
                     $.each(resultFilter, function (index, value){
                         if(value.status === 'TRADING'){
-                            options = options + `<option class="text-capitalize" value="${value.symbol}"> ${value.baseAsset} <-> ${value.quoteAsset}</option>`;
+                            options = options + `<option class="text-capitalize" value="${value.symbol}" data-base="${value.baseAsset}" data-quote="${value.quoteAsset}"> ${value.baseAsset} <-> ${value.quoteAsset}</option>`;
                         }
                     });
                     
                     select_trade_pair_coin.html(options);
+
+                    // Event listener for select change
+                    select_trade_pair_coin.change(function() {
+                        var selectedOption = $(this).find(':selected');
+                        var symbol = selectedOption.val();
+                        var baseAsset = selectedOption.data('base');
+                        var quoteAsset = selectedOption.data('quote');
+
+                        // Armazena as connfigurações de trade no LocalStorage e recarrega a página
+                        let market_user_settings = ({
+                            symbol:symbol,
+                            baseAsset:baseAsset,
+                            quoteAsset:quoteAsset
+                        });
+                        
+                        localStorage.setItem("local_market_settings", JSON.stringify(market_user_settings));
+                        getMarketData(saved_binance_api_key, saved_binance_api_key_secret);
+                    });
                 }
             });
         }
     }
 
-    function getMarketData(binance_api_key, binance_api_secret, trade_pair){
+    function getMarketData(binance_api_key, binance_api_secret){
+        let market_settings = JSON.parse(localStorage.getItem("local_market_settings"));
+        // Recupera as credenciais do objeto
+        let marketSettingsData = market_settings;
+
+        // Atribui as credenciais a variáveis separadas
+        let saved_trade_baseAsset = marketSettingsData.baseAsset;
+        let saved_trade_quoteAsset = marketSettingsData.quoteAsset;
+        let saved_trade_symbol = marketSettingsData.symbol;
+
+
         // Retorna as taxas do mercado selecionado
         $.ajax({
             url: "actions/account/get_trade_fee.php",
@@ -341,7 +361,7 @@ $(document).ready(() => {
             data: {
                 binance_api_key:saved_binance_api_key,
                 binance_api_secret:saved_binance_api_key_secret,
-                trade_pair:trade_pair
+                trade_pair:saved_trade_symbol
             },
             dataType: "json",
             success: function (resultado) {
@@ -354,14 +374,14 @@ $(document).ready(() => {
             }
         });
 
-        // Retorna informações sobre o mercado
+        // Retorna informações sobre o mercado a cada 24h
         $.ajax({
             url: "actions/market/get_market_last_24h.php",
             type: "POST",
             data: {
                 binance_api_key:saved_binance_api_key,
                 binance_api_secret:saved_binance_api_key_secret,
-                trade_pair:trade_pair
+                trade_pair:saved_trade_symbol
             },
             dataType: "json",
             success: function (resultado) {
@@ -380,7 +400,62 @@ $(document).ready(() => {
             }
         });
 
-        trade_market_selected.html(trade_pair);
+        // Retorna informações sobre o mercado a cada 5 minutos
+        $.ajax({
+            url: "actions/market/get_market_last_5min.php",
+            type: "POST",
+            data: {
+                binance_api_key:saved_binance_api_key,
+                binance_api_secret:saved_binance_api_key_secret,
+                trade_pair:saved_trade_symbol
+            },
+            dataType: "json",
+            success: function (resultado) {
+                let resultFilter = resultado['message'];
+                let lastPrice = parseFloat(resultFilter.lastPrice);
+                let priceChangePercent = parseFloat(resultFilter.priceChangePercent);
+
+                market_last_price.html(lastPrice.toFixed(8));
+                last_5_minutes.html(priceChangePercent.toFixed(4));
+
+                if(priceChangePercent > 0){
+                    last_5_minutes.addClass('text-success');
+                } else {
+                    last_5_minutes.addClass('text-danger');
+                }
+            }
+        });
+
+         // Retorna informações sobre o saldo do usuário nos pares selecionados
+         $.ajax({
+            url: "actions/account/get_all_active_balances.php",
+            type: "POST",
+            data: {
+                binance_api_key:saved_binance_api_key,
+                binance_api_secret:saved_binance_api_key_secret
+            },
+            dataType: "json",
+            success: function (resultado) {
+                var resultFilter = resultado['message'];
+                var pair_one = "";
+                var pair_two = "";
+                $.each(resultFilter, function (index, value) {
+                    if(value.asset === saved_trade_baseAsset) {
+                        pair_one = parseFloat(value.free).toFixed(8);
+                    }
+
+                    if(value.asset === saved_trade_quoteAsset) {
+                        pair_two = parseFloat(value.free).toFixed(8);
+                    }
+                });
+
+                balance_pair_one.html(pair_one);
+                balance_pair_two.html(pair_two);
+            }
+        });
+
+        trade_market_selected.html(saved_trade_symbol);
+
         console.log("Market data successfully updated at", new Date().toLocaleString());
     }
 });
