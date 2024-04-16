@@ -363,8 +363,6 @@ $(document).ready(() => {
                 let lastPrice = parseFloat(resultFilter.lastPrice);
                 let priceChangePercent = parseFloat(resultFilter.priceChangePercent);
 
-                console.log(resultFilter)
-
                 market_last_price.html(lastPrice.toFixed(8));
                 last_24_hours.html(priceChangePercent.toFixed(4));
 
