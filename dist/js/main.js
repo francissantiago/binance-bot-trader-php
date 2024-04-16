@@ -374,6 +374,24 @@ $(document).ready(() => {
             }
         });
 
+        // Retorna informações do último preço
+        $.ajax({
+            url: "actions/market/get_market_last_price.php",
+            type: "POST",
+            data: {
+                binance_api_key:saved_binance_api_key,
+                binance_api_secret:saved_binance_api_key_secret,
+                trade_pair:saved_trade_symbol
+            },
+            dataType: "json",
+            success: function (resultado) {
+                let resultFilter = resultado['message'];
+                let lastPrice = parseFloat(resultFilter.price);
+
+                market_last_price.html(lastPrice.toFixed(8));
+            }
+        });
+
         // Retorna informações sobre o mercado a cada 24h
         $.ajax({
             url: "actions/market/get_market_last_24h.php",
@@ -386,10 +404,8 @@ $(document).ready(() => {
             dataType: "json",
             success: function (resultado) {
                 let resultFilter = resultado['message'];
-                let lastPrice = parseFloat(resultFilter.lastPrice);
                 let priceChangePercent = parseFloat(resultFilter.priceChangePercent);
 
-                market_last_price.html(lastPrice.toFixed(8));
                 last_24_hours.html(priceChangePercent.toFixed(4));
 
                 if(priceChangePercent > 0){
@@ -412,10 +428,8 @@ $(document).ready(() => {
             dataType: "json",
             success: function (resultado) {
                 let resultFilter = resultado['message'];
-                let lastPrice = parseFloat(resultFilter.lastPrice);
                 let priceChangePercent = parseFloat(resultFilter.priceChangePercent);
 
-                market_last_price.html(lastPrice.toFixed(8));
                 last_5_minutes.html(priceChangePercent.toFixed(4));
 
                 if(priceChangePercent > 0){

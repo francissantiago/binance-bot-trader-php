@@ -18,6 +18,11 @@ class MarketsController {
         return $symbols;
     }
 
+    public function get_last_price($market) {
+        $response = $this->client->tickerPrice(['symbol' => $market]);
+        return $response;
+    }
+
     public function getTicker24hr($market) {
         $response = $this->client->ticker24hr(['symbol' => $market]);
         return $response;
