@@ -39,7 +39,6 @@ class MarketsController {
         );
 
         return $response;
-        // {"DOGE":{"withdrawFee":"4","minWithdrawAmount":"51","withdrawStatus":true,"depositStatus":true}}
     }
 }
 
