@@ -44,6 +44,45 @@ $conn = connectDatabase();
         </div>
 
         <div class="row bg-dark text-dark d-flex align-items-center p-2">
+            <div class="row d-flex align-items-center">
+                <div class="col-md-3">
+                    <div class="input-group mb-1 mt-1">
+                        <div class="alert alert-light form-control" role="alert">
+                            <span class="fw-bold">Trade Market</span> : <span id="trade_market_selected" class="float-end">-</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="input-group mb-1 mt-1">
+                        <div class="alert alert-light form-control" role="alert">
+                            <span class="fw-bold">Fee (Taker %)</span> : <span id="fee_level_taker" class="float-end">0.000</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="input-group mb-1 mt-1">
+                        <div class="alert alert-light form-control" role="alert">
+                            <span class="fw-bold">Fee (Maker %)</span> : <span id="fee_level_maker" class="float-end">0.000</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="input-group mb-1 mt-1">
+                        <div class="alert alert-light form-control" role="alert">
+                            <span class="fw-bold">Last Price</span> : <span id="market_last_price" class="float-end">0.00000000</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="input-group mb-1 mt-1">
+                        <div class="alert alert-light form-control" role="alert">
+                            <span class="fw-bold">Last 24h (%)</span> : <span id="last_24_hours" class="float-end fw-bold">0.0000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row bg-dark text-dark d-flex align-items-center p-2">
             <div class="accordion accordion-flush mb-2" id="accordionTradeBot">
                 <div class="accordion-item bg-dark text-light">
                     <h2 class="accordion-header">
@@ -111,36 +150,6 @@ $conn = connectDatabase();
                         </h2>
                         <div id="flush-collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionTradeBot">
                             <div class="accordion-body">
-                                <div class="row d-flex align-items-center">
-                                    <div class="col-md-3">
-                                        <div class="input-group mb-1 mt-1 text-center">
-                                            <div class="alert alert-light form-control" role="alert">
-                                                <span class="fw-bold">Fee (Taker)</span> : <span id="fee_level_taker">0.000</span> %
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="input-group mb-1 mt-1 text-center">
-                                            <div class="alert alert-light form-control" role="alert">
-                                                <span class="fw-bold">Fee (Maker)</span> : <span id="fee_level_maker">0.000</span> %
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="input-group mb-1 mt-1 text-center">
-                                            <div class="alert alert-light form-control" role="alert">
-                                                <span class="fw-bold">Last Price</span> : <span id="market_last_price">00000000.00000000</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="input-group mb-1 mt-1 text-center">
-                                            <div class="alert alert-light form-control" role="alert">
-                                                <span class="fw-bold">Last 24h</span> : <span id="last_24_hours">25.358</span> %
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                                 <div class="row">
                                     <div class="col-md-3">
                                         <div class="input-group mb-1 mt-1">
@@ -286,6 +295,7 @@ $conn = connectDatabase();
             let fee_level_maker = $('#fee_level_maker');
             let market_last_price = $('#market_last_price');
             let last_24_hours = $('#last_24_hours');
+            let trade_market_selected = $('#trade_market_selected');
 
             /* =================================================================
             * BOTÃO DE CONEXÃO E TESTE DE AUTENTICAÇÃO BINANCE
@@ -613,10 +623,18 @@ $conn = connectDatabase();
 
                         console.log(resultFilter)
 
-                        market_last_price.html(lastPrice.toFixed(3));
-                        last_24_hours.html(priceChangePercent.toFixed(3));
+                        market_last_price.html(lastPrice.toFixed(8));
+                        last_24_hours.html(priceChangePercent.toFixed(4));
+
+                        if(priceChangePercent > 0){
+                            last_24_hours.addClass('text-success');
+                        } else {
+                            last_24_hours.addClass('text-danger');
+                        }
                     }
                 });
+
+                trade_market_selected.html(trade_pair);
             }
         });
     </script>
