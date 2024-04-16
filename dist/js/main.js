@@ -205,8 +205,11 @@ $(document).ready(() => {
         select_trade_pair_coin.change(() => {
             let select_trade_pair_coin_value = select_trade_pair_coin.val();
 
+            getMarketData(saved_binance_api_key, saved_binance_api_key_secret, select_trade_pair_coin_value);
             if(select_trade_pair_coin_value){
-                getMarketData(saved_binance_api_key, saved_binance_api_key_secret, select_trade_pair_coin_value);
+                setInterval(() => {
+                    getMarketData(saved_binance_api_key, saved_binance_api_key_secret, select_trade_pair_coin_value);
+                }, 30000);
             } else {
                 fee_level_taker.html('0.000');
                 fee_level_maker.html('0.000');
@@ -292,7 +295,10 @@ $(document).ready(() => {
             input_max_lose.addClass('bg-secondary text-white').attr('readonly', true).val(saved_max_lose);
             input_max_profit.addClass('bg-secondary text-white').attr('readonly', true).val(saved_max_profit);
 
-            getMarketData(saved_binance_api_key, saved_binance_api_key_secret, saved_trade_pair_coin)
+            getMarketData(saved_binance_api_key, saved_binance_api_key_secret, saved_trade_pair_coin);
+            setInterval(() => {
+                getMarketData(saved_binance_api_key, saved_binance_api_key_secret, saved_trade_pair_coin);
+            }, 30000);
 
             div_save_bot_settings.hide();
             div_clear_bot_settings.show();
@@ -375,5 +381,6 @@ $(document).ready(() => {
         });
 
         trade_market_selected.html(trade_pair);
+        console.log("Market data successfully updated at", new Date().toLocaleString());
     }
 });
